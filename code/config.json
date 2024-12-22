@@ -1,0 +1,19 @@
+{
+  "covert_channel_code": "Replace it with the [Code] of chosen covert channel type seen in ODTUClass.",
+  "send": {
+    "parameters": {
+      "domainToQuery": "furkanmurathocam.com",
+      "dnsPort": 53,
+      "destIP": "172.18.0.3",
+      "log_file_name": "Example_UDPTimingInterarrivalChannelSender.log"
+    }
+  },
+  "receive": {
+    "parameters": {
+      "srcIP": "172.18.0.2",
+      "interface": "eth0",
+      "dnsPort": 53,
+      "log_file_name": "Example_UDPTimingInterarrivalChannelReceiver.log"
+    }
+  }
+}
