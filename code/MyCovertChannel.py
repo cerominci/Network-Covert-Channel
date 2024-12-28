@@ -1,5 +1,5 @@
 from CovertChannelBase import CovertChannelBase
-from scapy.all import DNS, DNSQR, IP, UDP, sniff, send
+from scapy.all import DNS, DNSQR, IP, UDP, sniff
 import time
 
 class MyCovertChannel(CovertChannelBase):
@@ -12,9 +12,8 @@ class MyCovertChannel(CovertChannelBase):
         - You can edit __init__.
         """
         pass
-    def send(self, log_file_name, destIP, dnsPort, domainToQuery):
+    def send(self, interface, log_file_name, destIP, dnsPort, domainToQuery, enc00, enc01, enc10, enc11):
         """
-
         For the first step, we create a binary message using the provided functions in the class CCB. We then check if binary message has an even or odd length.
         This is not necessary for we know that it will be of even length, but for generalization I wanted to add this. CC capacity measurement is not affected by that part.
         To maximize covert channel capacity we send 2 bits each time, as per the HW description.
@@ -30,14 +29,13 @@ class MyCovertChannel(CovertChannelBase):
 
         """
         binary_message = self.generate_random_binary_message_with_logging(log_file_name)
-        isEven = len(binary_message) % 2 == 0
+        isEven = len(binary_message) % 2 != 0
 
         encoding = {
-            "00" : 1,
-            "01" : 3,
-            "10" : 4,
-            "11" : 2,
-            
+            "00" : enc00,
+            "01" : enc01,
+            "10" : enc10,
+            "11" : enc11
         }
 
         t0 = time.time()
@@ -45,19 +43,14 @@ class MyCovertChannel(CovertChannelBase):
             twoBits = binary_message[(2 * i) : (2 * i) + 2]
             fireThis = encoding[twoBits]
             dnsPacket = IP(dst=destIP) / UDP(dport=dnsPort) / DNS(qd=DNSQR(qname=domainToQuery, qclass=fireThis))
-            send(dnsPacket)
+            super().send(dnsPacket, interface)
         t1 = time.time()
-        
 
-        if not isEven:
-            fireThis = encoding[binary_message[-1]]
-            dnsPacket = IP(dst=destIP) / UDP(dport=dnsPort) / DNS(qd=DNSQR(qname=domainToQuery, qclass=fireThis))
-            send(dnsPacket)
         print(f"CC capacity: {128 / (t1-t0)}")
         
 
     
-    def receive(self, interface, dnsPort, log_file_name, srcIP):
+    def receive(self, interface, dnsPort, log_file_name, srcIP, dec1, dec2, dec3, dec4):
         """
         binaryMessage here is the received encoded form of the message. stringReceived is the decoded form of it. 
         We define a packetDecoder function, that will append to binaryMessage, only if the captureed packet is a DNS packet, and is from the srcIP.
@@ -72,19 +65,28 @@ class MyCovertChannel(CovertChannelBase):
         binaryMessage = ""
         stringReceived = ""
         decoding = {
-            1 : "00",
             3 : "01",
             4 : "10",
-            2 : "11",
+            1 : "00",
+            2 : "11"
         }
+        def decoding(i):
+            if i==1:
+                return dec1
+            elif i==2:
+                return dec2
+            elif i==3:
+                return dec3
+            else:
+                return dec4
 
         def packetDecoder(packet):
             nonlocal binaryMessage
             print("Received 1 packet.\n")
             if (packet.haslayer(DNS)) and (packet[IP].src == srcIP):
                 qClass = packet[DNS].qd.qclass
-                if (qClass in [1, 3, 4, 2]):
-                    binaryMessage += (decoding[qClass])
+                if (qClass in [3,4,1,2]):
+                    binaryMessage += (decoding(qClass))
                     
         def shallIStop(packet):
             if binaryMessage.endswith("00101110"):
