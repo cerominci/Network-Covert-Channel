@@ -26,7 +26,7 @@ class MyCovertChannel(CovertChannelBase):
 
         To maximize CC capacity, we send 2 bits. But to do this we also must use CS - 2, which is obsolete. This reduces stealth of the channel. 
         We then iterate over the binary messages, selecting 2 bits each time. We then encode them, craft the DNS packet for the provided hostname and send this DNS packet.
-
+        Resulting covert channel capacity was 14.263304180843734 bits/second.
         """
         binary_message = self.generate_random_binary_message_with_logging(log_file_name)
         isEven = len(binary_message) % 2 != 0
