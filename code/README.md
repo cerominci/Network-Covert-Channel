@@ -78,7 +78,7 @@ print(f"CC capacity: {128 / (t1-t0)}")
 #### Covert Channel Capacity: 
 Average Capacity ~ 16
 
-## Usage
+## *Usage*
 After starting the containers, firstly run
 ```bash
 make receive

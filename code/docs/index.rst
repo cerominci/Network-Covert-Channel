@@ -6,9 +6,9 @@
 Covert Channel documentation
 ============================
 
-// Names: Baris Tastan, Ceren Karaoglan
-// Group ID: 16
-// Link: Repository: [GitHub - Covert Channel Project](https://github.com/baris-tastan/covertovert)
+- **Names** : Baris Tastan, Ceren Karaoglan
+- **Group ID** : 16
+- **Link Repository** : https://github.com/baris-tastan/covertovert
 
 
 
