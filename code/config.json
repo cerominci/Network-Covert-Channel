@@ -1,12 +1,12 @@
 {
-  "covert_channel_code": "Replace it with the [Code] of chosen covert channel type seen in ODTUClass.",
+  "covert_channel_code": "CSC-PSV-DNS-QCF",
   "send": {
     "parameters": {
       "domainToQuery": "furkanmurathocam.com",
       "dnsPort": 53,
       "destIP": "172.18.0.3",
       "interface": "eth0",
-      "log_file_name": "Example_UDPTimingInterarrivalChannelSender.log",
+      "log_file_name": "Example_DNSQuestionClassSender.log",
       "enc00": 1,
       "enc01": 3,
       "enc10": 4,
@@ -19,7 +19,7 @@
       "srcIP": "172.18.0.2",
       "interface": "eth0",
       "dnsPort": 53,
-      "log_file_name": "Example_UDPTimingInterarrivalChannelReceiver.log",
+      "log_file_name": "Example_DNSQuestionClassReceiver.log",
       "dec1": "00",
       "dec2": "11",
       "dec3": "01",
