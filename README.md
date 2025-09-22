@@ -1,39 +1,94 @@
-# COVERTOVERT
-Open source implementation of "network" covert channels.
+#  Covert Storage Channel that exploits Protocol Field Manipulation using Question - Class field in DNS
 
-## Installation
+## *Project Overview*
+This project implements a Covert Storage Channel (CSC) by exploiting Protocol Field Manipulation using the DNS Question-Class field.
 
-Install docker (and optionally compose V2 plugin - not the docker-compose!) and VSCode on your sytstem. Run the docker containers as non-root users.
+### What is a Covert Channel?
 
-To start sender and receiver containers:
+A covert channel bypasses normal security controls and uses unintended system features to transfer information secretly. It is often used to exfiltrate data and is a key concern in cybersecurity.
+
+### Method Used in This Project
+
+- **Protocol Field Manipulation (PFM)**: Data is embedded into specific protocol fields, such as the DNS Question-Class field, which is not commonly monitored.
+
+- **DNS Question-Class Field**: Encodes binary information by altering values (e.g., IN, CS, CH, HS).
+
+By leveraging unused or uncommon DNS class values, the project achieves a covert communication channel with high capacity while maintaining operational stealth.
+
+## *Implementation*
+
+### Encoding Rule:
+
+The sender encodes 2 bits of data into the DNS Question-Class field using predefined mappings:
+- `00` → IN (1)
+- `01` → CH (3)
+- `10` → HS (4)
+- `11` → CS (2)
+
+### Communication Flow:
+
+#### Sender:
+Generates a binary message (128 bits).
+Encodes the message into DNS packets by manipulating the Question-Class field.
+Sends the packets to the receiver.
+
+#### Receiver:
+Captures DNS packets and extracts the Question-Class field values.
+Decodes the binary message based on the predefined mappings.
+Reconstructs the original message.
+
+## *Parameter Constraints*
+
+### Sender Parameters:
+```python
+send(self, interface, log_file_name, destIP, dnsPort, domainToQuery, enc00, enc01, enc10, enc11)
 ```
-docker compose up -d
+
+- `interface`: Network interface to send packets.
+- `log_file_name`: Logs the sent binary message.
+- `destIP`: Destination IP address for DNS queries.
+- `dnsPort`: Port number for DNS communication (default is 53).
+- `domainToQuery`: Domain name used in DNS queries.
+- `enc00, enc01, enc10, enc11`: Custom values for encoding binary pairs.
+
+
+### Receiver Parameters:
+```python 
+receive(self, interface, dnsPort, log_file_name, srcIP, dec1, dec2, dec3, dec4)
 ```
 
-To stop sender and receiver containers:
+- `interface`    : Network interface to capture packets.
+- `dnsPort`       : Port number to filter DNS packets (default is 53).
+- `log_file_name`  : Logs the received binary message.
+- `srcIP`          : Source IP address of the sender.
+- `dec1, dec2, dec3, dec4`: Custom mappings for decoding DNS Question-Class values.
+
+## *Covert Channel Capacity Measurement*
+
+The covert channel capacity is calculated as follows:
+
+- Generate a binary message of length 128 bits.
+- Start a timer before sending the first packet.
+- Stop the timer after sending the last packet.
+- Calculate elapsed time and covert channel capacity:
+
+```python
+print(f"CC capacity: {128 / (t1-t0)}")
 ```
-docker compose down
+#### Covert Channel Capacity: 
+Average Capacity ~ 16
+
+## *Usage*
+After starting the containers, firstly run
+```bash
+make receive
 ```
-
-Note that, if you orchestrate your containers using docker compose, the containers will have hostnames ("sender" and "receiver") and DNS will be able to resolve them...
-
-In one terminal, attach to the sender container
+and then,
+```bash
+make send
 ```
-docker exec -it sender bash
+Binary message will be successfully sent to the receiver side. 
+To compare the sent and received messages to see whether the covert channel communication is a success, run
+```bash
+make compare
 ```
-In another terminal, attach to the receiver container
-```
-docker exec -it receiver bash
-```
-
-and you will be in your Ubuntu 22.04 Docker instance (python3.10.12 and scapy installed). After running the Ubuntu Docker, you can type "ip addr" or "ifconfig" to see your network configuration (work on eth0).
-
-Docker extension of VSCode will be of great benefit to you.
-
-Note that if you develop code in these Docker instances and you stop the machine, your code will be lost. That is why it is recommended to use Github to store your code and clone in the machine, and push your code to Github before shutting the Docker instances down. The other option is to work in the /app folder in the sender and receiver Docker instances which are mounted to the "code" directory of your own machine.
-
-**IMPORTANT** Note that the "code" folder on your local machine are mounted to the "/app" folder (be careful it is in the root folder) in the sender and receiver Docker instances (read/write mode). You can use these folders (they are the same in fact) to develop your code. Other than the /app folder, this tool does not guarantee any persistent storage: if you exit the Docker instance, all data will be lost.
-
-You can develop your code on your local folders ("code/sender" and "code/receiver") on your own host machine, they will be immediately synchronized with the "/app" folder on containers. The volumes are created in read-write mode, so changes can be made both on the host or on the containers. You can run your code on the containers.
-
-Additionally, the local "examples" folder is mapped to the "/examples" folder in the containers. In that folder, there is a covert timing channel example including sender, receiver and base classes. In the second phase, you will implement a similar system, so it is recommended to look at the example for now.
